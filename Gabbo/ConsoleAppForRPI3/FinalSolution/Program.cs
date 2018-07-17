@@ -37,7 +37,7 @@ namespace _FinalSolution
         #region Cloud
 
         static string[] messageCloud= new string[4];
-        static string stringConnection = "Server=tcp:ghisaiot.database.windows.net,1433;Initial Catalog=RoomData;Persist Security Info=False;User ID=trainer;Password=BmxTrieste_96;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
+        static string stringConnection = "";
         #endregion
 
 
