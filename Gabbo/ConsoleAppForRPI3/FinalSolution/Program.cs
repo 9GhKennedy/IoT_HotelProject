@@ -14,15 +14,15 @@ namespace _FinalSolution
         #region
 
         static int combo;
-         static string myPiano="1";
-         static int myPic_temp=1;
-         static int myPic_door;
+        static string myPiano="1";
+        static int myPic_temp=1;
+        static int myPic_door;
         
         #endregion
 
         #region PIC
 
-        static string comPort = "COM5";
+        static string comPort = "COM3";
         static char[] dataR = new char[9];
         static char[] dataS = new char[9];
         static string risposta;
@@ -43,7 +43,7 @@ namespace _FinalSolution
 
         static async Task Main(string[] args)
         {
-            combo = 0;
+            combo = 1;
             ticket = false;
             port = new SerialPort(comPort, 9600, Parity.None, 8, StopBits.One);
             port.Open();
@@ -119,75 +119,86 @@ namespace _FinalSolution
 
         static void ResiveTemp()
         {
-            using (var conn = new SqlConnection(stringConnection))
-            {
-                try {
-                    conn.Open();
-                    var cmd = conn.CreateCommand();
-                    var deviceName = "P0" + "1" + "R0" + myPiano;
-                    cmd.CommandText = "SELECT TOP 1 Dev_name, Set_room_temp, Timestamp, Flag  FROM RoomChange WHERE Dev_name = '" + deviceName + "' ORDER BY (Timestamp) ";
-                    SqlDataReader dataReader = cmd.ExecuteReader();
-                    while (dataReader.Read())
-                    {
-                        messageCloud[0] = dataReader.GetString(0);
-                        messageCloud[1] = dataReader.GetInt32(1).ToString();
-                        messageCloud[2] = dataReader.GetDateTime(2).ToString();
-                        messageCloud[3] = dataReader.GetString(3);
-                    }
+            //using (var conn = new SqlConnection(stringConnection))
+            //{
+                
+            //    try {
+            //        conn.Open();
+            //        var cmd = conn.CreateCommand();
+            //        var deviceName = "P0" + "1" + "R0" + myPiano;
+            //        cmd.CommandText = "SELECT TOP 1 Dev_name, Set_room_temp, Timestamp, Flag  FROM RoomChange WHERE Dev_name = '" + deviceName + "' ORDER BY (Timestamp) ";
+            //        SqlDataReader dataReader = cmd.ExecuteReader();
+            //        while (dataReader.Read())
+            //        {
+            //            messageCloud[0] = dataReader.GetString(0);
+            //            messageCloud[1] = dataReader.GetInt32(1).ToString();
+            //            messageCloud[2] = dataReader.GetDateTime(2).ToString();
+            //            messageCloud[3] = dataReader.GetString(3);
+            //        }
                     
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex); }
-                }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        //Console.WriteLine(ex);
+            //        messageCloud[0] = "P01R01";
+            //        messageCloud[1] = "33";
+            //        messageCloud[2] = "ccccc";
+            //        messageCloud[3] = "0";
+            //    }
 
-            char[] valueToSend;
-             try { 
-                valueToSend = messageCloud[1].ToCharArray();
-            }
-            catch
-            {
-                valueToSend = new char[]{'0','0' };
-            }
-            string valueT ="P01R01" + messageCloud[1] + "X";
-            char[] messageS ={ 'P', '0', '1', 'R','0', '1', valueToSend[0], valueToSend[1] };
-            Console.WriteLine($"messaggio: {valueT}");
-            port.WriteLine(valueT);
-            port.Write(messageS, 0, 8);
+            //}
+                
+            //char[] valueToSend;
+            // try { 
+            //    valueToSend = messageCloud[1].ToCharArray();
+            //}
+            //catch
+            //{
+            //    valueToSend = new char[]{'0','0' };
+            //}
+         
+            //string valueT ="P01R01" + messageCloud[1] + "X";
+            //char[] messageS ={ 'P', '0', '1', 'R','0', '1', valueToSend[0], valueToSend[1] };
+            //Console.WriteLine($"messaggio: {valueT}");
+            //port.WriteLine(valueT);
+            //port.Write(messageS, 0, 8);
+           
 
             port.DataReceived += (s, e) =>
             {
                 port.Read(dataR, 0, dataR.Length);
                 risposta = new string(dataR);
                 Console.WriteLine($": {risposta}");
-
                 ticket = true;
 
-            };
-
-            if (ticket==true)
-            {
-                using (var conn = new SqlConnection(stringConnection))
+                Task.Delay(1000);
+                if (ticket == true)
                 {
-                    try
+                    using (var conn = new SqlConnection(stringConnection))
                     {
-                        conn.Open();
-                        var cmd = conn.CreateCommand();
-                        var deviceName = "P0" + "1" + "R0" + myPiano;
-                        var Devname = risposta.Substring(0,6);
-                        var Set_room_temp = risposta.Substring(7, 2);
-                        var User = "User";
-                        var Timestamp = DateTime.Now.ToUniversalTime();
-                        cmd.CommandText = "INSERT INTO RoomValue (Dev_name, Set_room_temp, Timestamp, User) VALUES ('" + Devname + "', '" + Set_room_temp + "', '" + Timestamp + "', '" + User +";
-                        SqlDataReader dataReader = cmd.ExecuteReader();       
+                        try
+                        {
+                            conn.Open();
+                            var cmd = conn.CreateCommand();
+                            var deviceName = "P0" + "1" + "R0" + myPiano;
+                            var Devname = risposta.Substring(0, 5);
+                            var Set_room_temp = risposta.Substring(6, 2);
+                            var User = "User";
+                            var StatusDoor = risposta.Substring(8, 1);
+                            var Timestamp = DateTime.Now;
+                            Console.WriteLine("INSERT INTO RoomValue (Dev_name, Room_temp, Status_door, [Timestamp]) VALUES ('" + Devname + "', '" + Set_room_temp + "', '" + StatusDoor + "', '" + Timestamp + "')");
+                            cmd.CommandText = "INSERT INTO RoomValue (Dev_name, Room_temp, Status_door, [Timestamp]) VALUES ('" + Devname + "', '" + Set_room_temp + "', '" + StatusDoor + "', '" + Timestamp + "')";
+                            SqlDataReader dataReader = cmd.ExecuteReader();
 
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }
-            }
-        }
+                }
+
+            };
 
             Task.Delay(9000);
                 
