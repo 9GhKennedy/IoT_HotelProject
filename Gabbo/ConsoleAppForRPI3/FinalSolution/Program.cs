@@ -169,33 +169,37 @@ namespace _FinalSolution
                 port.Read(dataR, 0, dataR.Length);
                 risposta = new string(dataR);
                 Console.WriteLine($": {risposta}");
-                ticket = true;
+                if (risposta.Length == 9)
+               
+                
 
                 Task.Delay(1000);
                 if (ticket == true)
                 {
-                    using (var conn = new SqlConnection(stringConnection))
-                    {
-                        try
-                        {
-                            conn.Open();
-                            var cmd = conn.CreateCommand();
-                            var deviceName = "P0" + "1" + "R0" + myPiano;
-                            var Devname = risposta.Substring(0, 5);
-                            var Set_room_temp = risposta.Substring(6, 2);
-                            var User = "User";
-                            var StatusDoor = risposta.Substring(8, 1);
-                            var Timestamp = DateTime.Now;
-                            Console.WriteLine("INSERT INTO RoomValue (Dev_name, Room_temp, Status_door, [Timestamp]) VALUES ('" + Devname + "', '" + Set_room_temp + "', '" + StatusDoor + "', '" + Timestamp + "')");
-                            cmd.CommandText = "INSERT INTO RoomValue (Dev_name, Room_temp, Status_door, [Timestamp]) VALUES ('" + Devname + "', '" + Set_room_temp + "', '" + StatusDoor + "', '" + Timestamp + "')";
-                            SqlDataReader dataReader = cmd.ExecuteReader();
+                     using (var conn = new SqlConnection(stringConnection))
+                     {
+                         try
+                         {
+                             conn.Open();
+                             var cmd = conn.CreateCommand();
+                             string deviceName = risposta.Substring(0,6);
+                             char[] Devname = risposta.Substring(0, 5).ToCharArray();
+                             var Set_room_temp = risposta.Substring(6, 2);
+                             var User = "User";
+                             var StatusDoor = risposta.Substring(8, 1);
+                             var Timestamp = DateTime.Now.ToLocalTime();
+                             Console.WriteLine("INSERT INTO RoomValue (Dev_name, Room_temp, Status_door, [Timestamp]) VALUES ('" + deviceName + "', '" + Set_room_temp + "', '" + StatusDoor + "', '" + Timestamp + "')");
+                             cmd.CommandText = "INSERT INTO RoomValue (Dev_name, Room_temp, Status_door, [Timestamp]) VALUES ('" + deviceName + "', '" + Set_room_temp + "', '" + StatusDoor + "', '" + Timestamp + "')";
 
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex);
-                        }
-                    }
+                             SqlDataReader dataReader = cmd.ExecuteReader();
+
+                         }
+                         catch (Exception ex)
+                         {
+                             Console.WriteLine(ex);
+                         }
+
+                     } 
                 }
 
             };
